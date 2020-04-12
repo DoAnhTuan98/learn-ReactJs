@@ -1,16 +1,20 @@
 import React , { Component } from 'react';
+import * as actions from './../actions/index';
+import { connect } from 'react-redux';
 
 class TaskItem extends Component {
     onUpdateStatus = () => {
-        this.props.onUpdateStatus(this.props.task.id)
+        this.props.onUpdateStatus(this.props.task.id);
     }
 
     removeItem = () => {
-        this.props.removeItem(this.props.task.id);
+        this.props.onDeleteTask(this.props.task.id);
+        this.props.onCloseForm()
     }
     
     updateItem = () => {
-        this.props.onUpdateItem(this.props.task.id); 
+        this.props.onOpenForm();
+        this.props.onEditTask(this.props.task); 
     }
     render () {
         var { task , index } = this.props;
@@ -31,4 +35,31 @@ class TaskItem extends Component {
     }
 }
 
-export default TaskItem;
+const mapStateToProps = (state) => {
+    return {
+        
+    };
+  }
+  
+  const mapDispatchToProps = (dispatch,props) => {
+    return {
+        onUpdateStatus : (id) => {
+            dispatch(actions.updateStatus(id));
+        },
+        onDeleteTask : (id) => {
+            dispatch(actions.onDeleteTask(id));
+        },
+        onCloseForm : () => {
+            dispatch(actions.closeForm());
+        },
+        onEditTask : (task) => {
+            dispatch(actions.onEditTask(task));
+        },
+        onOpenForm : () => {
+            dispatch(actions.openForm());
+        }
+    };
+  }
+  
+export default connect(mapStateToProps,mapDispatchToProps)(TaskItem);
+  

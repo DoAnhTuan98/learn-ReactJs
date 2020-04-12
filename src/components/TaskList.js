@@ -1,5 +1,7 @@
 import React , { Component } from 'react';
 import TaskItem from "./TaskItem"
+import { connect } from 'react-redux';
+import * as actions from './../actions/index'
 
 class TaskList extends Component {
     constructor(props) {
@@ -13,27 +15,48 @@ class TaskList extends Component {
       var target = event.target;
       var name = target.name;
       var value = target.value;
-      this.props.onFilter(
-        name === 'filterName' ? value : this.state.filterName,
-        name === 'filterStatus' ? value : this.state.filterStatus
-      ) 
+      var filter = {
+        name : name === 'filterName' ? value : this.state.filterName,
+        status : name === 'filterStatus' ? value : this.state.filterStatus
+      }
+      this.props.onFilterTable(filter); 
       this.setState({
         [name] : value
       })
     }
   
     render () {
+      // console.log(this.props.todos);
       var { filterName , filterStatus } = this.state;
-      var { tasks } = this.props;
+      var { tasks,filterTable,search } = this.props;
+
+      // filter task
+      if(filterTable.name) {
+        tasks = tasks.filter((task) => {
+          return task.name.toLowerCase().indexOf(filterTable.name.toLowerCase()) !== -1
+        })
+      }
+      
+      tasks = tasks.filter((task) => {
+        if(filterTable.status === -1 ) {
+          return task
+        }
+        else {
+          return task.status === (filterTable.status === 1 ? true : false);
+        }
+      })
+
+      if(search) { // tìm kiếm 
+        tasks = tasks.filter((task) => {
+          return task.name.toLowerCase().indexOf(search.toLocaleLowerCase()) !== -1;
+        });
+      }
+      
       var elmTasks = tasks.map((task,index) => {
         return <TaskItem 
           key={task.id} 
           index={index} 
           task={task} 
-          onUpdateStatus={this.props.onUpdateStatus} 
-          removeItem={this.props.removeItem} 
-          onToggleForm={this.props.onToggleForm}
-          onUpdateItem={this.props.onUpdateItem}
         />
       });  
       return (
@@ -49,7 +72,7 @@ class TaskList extends Component {
                 </thead>
                 <tbody>
                   <tr>
-                    <td scope="row"></td>
+                    <td></td>
                     <td>
                       <input type="text" className="form-control" name="filterName" value={filterName} onChange={this.onHandleChange}></input>
                     </td>
@@ -71,4 +94,21 @@ class TaskList extends Component {
       );
     }
 }
-export default TaskList;
+
+const mapStateToProps = (state) => {
+  return {
+    tasks: state.tasks,
+    filterTable : state.filterTable,
+    search : state.search
+  }
+}
+
+const mapDispatchToProps = (dispatch,props) => {
+  return {
+    onFilterTable : (filter) => {
+      dispatch(actions.filterTask(filter));
+    }
+  };
+}
+
+export default connect(mapStateToProps,mapDispatchToProps)(TaskList);
